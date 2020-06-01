@@ -465,6 +465,25 @@
           );
         }
       break;
+      case 'admindelete':
+        if(isset($_GET['id']) && $_SESSION['privilege'] == 1){
+          if($recipe->deleteAllbyUserId($_GET['id'])){
+            echo json_encode(
+              array('message' => 'delete ALL!')
+            );
+          } else {
+            echo json_encode(
+              array('message' => 'not delete ALL')
+            );
+          }
+      } else {
+        //if get access to delete recipe but not logged in
+        http_response_code(401);
+        echo json_encode(
+          array('message' => 'Not authorized.')
+        );
+      }
+      break;
       default:
         http_response_code(404);
         echo json_encode(

@@ -476,4 +476,74 @@
         return false;
       }
     }
+
+    public function deleteAllbyUserId($user_id){
+      $this->conn->beginTransaction();
+      //delete from method (step)
+      $query = 'DELETE m.* FROM method m
+                JOIN recipe r
+                ON r.recipe_id = m.recipe_id
+                WHERE r.user_id = :user_id';
+      $stmt = $this->conn->prepare($query);
+      $stmt->bindParam(':user_id', $user_id);
+      $stmt->execute();
+
+      //delete from ingredients
+      $query = 'DELETE i.* FROM ingredient i
+                JOIN recipe r
+                ON r.recipe_id = i.recipe_id
+                WHERE r.user_id = :user_id';
+      $stmt = $this->conn->prepare($query);
+      //input filter
+      //bind data
+      $stmt->bindParam(':user_id', $user_id);
+      $stmt->execute();
+     
+      //delete comment
+      $query = 'DELETE c.* from comment c
+                Join recipe r
+                ON r.recipe_id = c.recipe_id
+                WHERE r.user_id = :user_id';
+
+      $stmt = $this->conn->prepare($query);
+      $stmt->bindParam(':user_id', $user_id);
+      $stmt->execute();
+
+      //delete comment 2
+      $query = 'DELETE c.* from comment c
+                WHERE c.user_id = :user_id';
+      
+      $stmt = $this->conn->prepare($query);
+      $stmt->bindParam(':user_id', $user_id);
+      $stmt->execute();
+      //finally delete recipe
+      $query = 'DELETE r.* FROM recipe r
+                WHERE r.user_id = :user_id';
+      //prepate statement
+      $stmt = $this->conn->prepare($query);
+      //input filter
+      //bind data
+      $stmt->bindParam(':user_id', $user_id);
+      $stmt->execute();
+
+      //finally delete user
+      $query = 'DELETE l.* FROM login l
+                WHERE l.user_id = :user_id';
+      //prepate statement
+      $stmt = $this->conn->prepare($query);
+      //input filter
+      //bind data
+      $stmt->bindParam(':user_id', $user_id);
+      $stmt->execute();
+
+      if($this->conn->commit()){
+        return true;
+      }
+
+      //print error if something goes wrong
+      // printf('Error: %s.\n', $stmt->error);
+
+      return false;
+    
+    }
   }

@@ -9,7 +9,8 @@
           <b-col @click="bringSingleRecipe(cocktail.recipe_id)"><strong> {{ cocktail.name }} </strong></b-col>
         </b-row>
         <b-row>
-          <b-col class="item"><p class="little mb-0"> {{ cocktail.ingre_arr[0].item }}, {{ cocktail.ingre_arr[1].item }}, {{ cocktail.ingre_arr[2].item }} </p></b-col>
+          <b-col class="item" v-if="cocktail.ingre_arr.length <= 2"><p class="little mb-0"> {{ cocktail.ingre_arr[0].item }}, {{ cocktail.ingre_arr[1].item }}</p></b-col>
+          <b-col class="item" v-if="cocktail.ingre_arr.length > 2"><p class="little mb-0"> {{ cocktail.ingre_arr[0].item }}, {{ cocktail.ingre_arr[1].item }}, {{ cocktail.ingre_arr[2].item }} </p></b-col>
         </b-row>
         <b-row>
           <b-col>
