@@ -1,3 +1,13 @@
+Setup:
+you would have to change database configuration in src/backend/config/Database.php
+you can import dummy sql data prepared in doc/ux2_cocktailer.sql
+after that you will need to change the the proxy setting in /vue.config.js
+
+Login details:
+account with admin privilege { username: admin, password: thisisadmiN0 }
+account that owns all recipe { username: uxboi, password: thisisuxboI0 }
+account with no privilege { username: uxgurl, password: thisisuxgurL0 }
+
 Implementation matters:
 The app is using Vue as frontend framework and PHP(PDO) as a API endpoint.
 database using mySQL.
