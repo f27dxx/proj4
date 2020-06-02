@@ -2,6 +2,7 @@ Setup:
 you would have to change database configuration in src/backend/config/Database.php
 you can import dummy sql data prepared in doc/ux2_cocktailer.sql
 after that you will need to change the the proxy setting in /vue.config.js
+you may need to update ip in /.env to see admin panel
 
 Login details:
 account with admin privilege { username: admin, password: thisisadmiN0 }
