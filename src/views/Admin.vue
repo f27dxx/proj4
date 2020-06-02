@@ -141,6 +141,9 @@
         <b-button size="sm" @click="deleteRecipe(row.item)" class="btn-danger">
           DELETE
         </b-button>
+        <b-button size="sm" @click="deleteAllbyUserId(row.item.user_id)" class="btn-danger mt-1">
+          ALL
+        </b-button>
       </template>
 
       <template v-slot:row-details="row">
@@ -229,6 +232,19 @@ export default {
       console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
       console.log(item.recipe_id)
+    },
+    async deleteAllbyUserId (userId) {
+      const response = await fetch('/api/ws.php?method=admindelete&id=' + userId, {
+        method: 'POST',
+        cache: 'no-cache',
+        credentials: 'include'
+      })
+      const data = await response.json()
+
+      const fetchResult = {
+        response, data
+      }
+      this.$emit('display-alert', fetchResult)
     }
   }
 }
