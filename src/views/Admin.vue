@@ -1,165 +1,180 @@
 <template>
   <b-container fluid>
-    <!-- User Interface controls -->
-    <b-row>
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          label="Sort"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          label-for="sortBySelect"
-          class="mb-0"
-        >
-          <b-input-group size="sm">
-            <b-form-select v-model="sortBy" id="sortBySelect" :options="sortOptions" class="w-75">
-              <template v-slot:first>
-                <option value="">-- none --</option>
-              </template>
-            </b-form-select>
-            <b-form-select v-model="sortDesc" size="sm" :disabled="!sortBy" class="w-25">
-              <option :value="false">Asc</option>
-              <option :value="true">Desc</option>
-            </b-form-select>
-          </b-input-group>
-        </b-form-group>
-      </b-col>
+    <AdminUpdate
+      v-if="showUpdateForm"
+      :recipe="updateTarget"
+      @display-alert="passToTop"
+      @show-panel="showPanel"
+    />
+    <div v-if="!showUpdateForm">
+      <!-- User Interface controls -->
+      <b-row>
+        <b-col lg="6" class="my-1">
+          <b-form-group
+            label="Sort"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            label-for="sortBySelect"
+            class="mb-0"
+          >
+            <b-input-group size="sm">
+              <b-form-select v-model="sortBy" id="sortBySelect" :options="sortOptions" class="w-75">
+                <template v-slot:first>
+                  <option value="">-- none --</option>
+                </template>
+              </b-form-select>
+              <b-form-select v-model="sortDesc" size="sm" :disabled="!sortBy" class="w-25">
+                <option :value="false">Asc</option>
+                <option :value="true">Desc</option>
+              </b-form-select>
+            </b-input-group>
+          </b-form-group>
+        </b-col>
 
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          label="Initial sort"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          label-for="initialSortSelect"
-          class="mb-0"
-        >
-          <b-form-select
-            v-model="sortDirection"
-            id="initialSortSelect"
+        <b-col lg="6" class="my-1">
+          <b-form-group
+            label="Initial sort"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            label-for="initialSortSelect"
+            class="mb-0"
+          >
+            <b-form-select
+              v-model="sortDirection"
+              id="initialSortSelect"
+              size="sm"
+              :options="['asc', 'desc', 'last']"
+            ></b-form-select>
+          </b-form-group>
+        </b-col>
+
+        <b-col lg="6" class="my-1">
+          <b-form-group
+            label="Filter"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            label-for="filterInput"
+            class="mb-0"
+          >
+            <b-input-group size="sm">
+              <b-form-input
+                v-model="filter"
+                type="search"
+                id="filterInput"
+                placeholder="Type to Search"
+              ></b-form-input>
+              <b-input-group-append>
+                <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col lg="6" class="my-1">
+          <b-form-group
+            label="Filter On"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            description="Leave all unchecked to filter on all data"
+            class="mb-0">
+            <b-form-checkbox-group v-model="filterOn" class="mt-1">
+              <b-form-checkbox value="name">Name</b-form-checkbox>
+              <b-form-checkbox value="username">username</b-form-checkbox>
+              <b-form-checkbox value="recipe_id">recipe_id</b-form-checkbox>
+            </b-form-checkbox-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col sm="5" md="6" class="my-1">
+          <b-form-group
+            label="Per page"
+            label-cols-sm="6"
+            label-cols-md="4"
+            label-cols-lg="3"
+            label-align-sm="right"
+            label-size="sm"
+            label-for="perPageSelect"
+            class="mb-0"
+          >
+            <b-form-select
+              v-model="perPage"
+              id="perPageSelect"
+              size="sm"
+              :options="pageOptions"
+            ></b-form-select>
+          </b-form-group>
+        </b-col>
+
+        <b-col sm="7" md="6" class="my-1">
+          <b-pagination
+            v-model="currentPage"
+            :total-rows="totalRows"
+            :per-page="perPage"
+            align="fill"
             size="sm"
-            :options="['asc', 'desc', 'last']"
-          ></b-form-select>
-        </b-form-group>
-      </b-col>
+            class="my-0"
+          ></b-pagination>
+        </b-col>
+      </b-row>
 
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          label="Filter"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          label-for="filterInput"
-          class="mb-0"
-        >
-          <b-input-group size="sm">
-            <b-form-input
-              v-model="filter"
-              type="search"
-              id="filterInput"
-              placeholder="Type to Search"
-            ></b-form-input>
-            <b-input-group-append>
-              <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
-            </b-input-group-append>
-          </b-input-group>
-        </b-form-group>
-      </b-col>
+      <!-- Main table element -->
+      <b-table
+        show-empty
+        small
+        stacked="md"
+        :items="allRecipe"
+        :fields="fields"
+        :current-page="currentPage"
+        :per-page="perPage"
+        :filter="filter"
+        :filterIncludedFields="filterOn"
+        :sort-by.sync="sortBy"
+        :sort-desc.sync="sortDesc"
+        :sort-direction="sortDirection"
+        @filtered="onFiltered"
+      >
+        <template v-slot:cell(name)="row">
+          {{ row.value }}
+        </template>
 
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          label="Filter On"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          description="Leave all unchecked to filter on all data"
-          class="mb-0">
-          <b-form-checkbox-group v-model="filterOn" class="mt-1">
-            <b-form-checkbox value="name">Name</b-form-checkbox>
-            <b-form-checkbox value="username">username</b-form-checkbox>
-            <b-form-checkbox value="recipe_id">recipe_id</b-form-checkbox>
-          </b-form-checkbox-group>
-        </b-form-group>
-      </b-col>
+        <template v-slot:cell(actions)="row">
+          <b-button size="sm" @click="row.toggleDetails" class="mr-3">
+            {{ row.detailsShowing ? 'Hide' : 'Show' }} Details
+          </b-button>
+          <b-button size="sm" @click="deleteRecipe(row.item)" class="btn-danger">
+            DELETE
+          </b-button>
+          <b-button size="sm" @click="deleteAllbyUserId(row.item.user_id)" class="btn-danger mt-1">
+            ALL
+          </b-button>
+          <b-button size="sm" @click="showUpdatePage(row.item)" class="btn-warning mt-1 ml-1">
+            Edit
+          </b-button>
+        </template>
 
-      <b-col sm="5" md="6" class="my-1">
-        <b-form-group
-          label="Per page"
-          label-cols-sm="6"
-          label-cols-md="4"
-          label-cols-lg="3"
-          label-align-sm="right"
-          label-size="sm"
-          label-for="perPageSelect"
-          class="mb-0"
-        >
-          <b-form-select
-            v-model="perPage"
-            id="perPageSelect"
-            size="sm"
-            :options="pageOptions"
-          ></b-form-select>
-        </b-form-group>
-      </b-col>
-
-      <b-col sm="7" md="6" class="my-1">
-        <b-pagination
-          v-model="currentPage"
-          :total-rows="totalRows"
-          :per-page="perPage"
-          align="fill"
-          size="sm"
-          class="my-0"
-        ></b-pagination>
-      </b-col>
-    </b-row>
-
-    <!-- Main table element -->
-    <b-table
-      show-empty
-      small
-      stacked="md"
-      :items="allRecipe"
-      :fields="fields"
-      :current-page="currentPage"
-      :per-page="perPage"
-      :filter="filter"
-      :filterIncludedFields="filterOn"
-      :sort-by.sync="sortBy"
-      :sort-desc.sync="sortDesc"
-      :sort-direction="sortDirection"
-      @filtered="onFiltered"
-    >
-      <template v-slot:cell(name)="row">
-        {{ row.value }}
-      </template>
-
-      <template v-slot:cell(actions)="row">
-        <b-button size="sm" @click="row.toggleDetails" class="mr-3">
-          {{ row.detailsShowing ? 'Hide' : 'Show' }} Details
-        </b-button>
-        <b-button size="sm" @click="deleteRecipe(row.item)" class="btn-danger">
-          DELETE
-        </b-button>
-        <b-button size="sm" @click="deleteAllbyUserId(row.item.user_id)" class="btn-danger mt-1">
-          ALL
-        </b-button>
-      </template>
-
-      <template v-slot:row-details="row">
-        <b-card>
-          <ul>
-            <li v-for="(value, key) in row.item" :key="key">{{ key }}: {{ value }}</li>
-          </ul>
-        </b-card>
-      </template>
-    </b-table>
+        <template v-slot:row-details="row">
+          <b-card>
+            <ul>
+              <li v-for="(value, key) in row.item" :key="key">{{ key }}: {{ value }}</li>
+            </ul>
+          </b-card>
+        </template>
+      </b-table>
+    </div>
   </b-container>
 </template>
 
 <script>
+import AdminUpdate from '@/components/AdminUpdate'
 export default {
   name: 'Admin',
+  components: {
+    AdminUpdate
+  },
   data () {
     return {
       allRecipe: [],
@@ -183,7 +198,9 @@ export default {
         id: 'info-modal',
         title: '',
         content: ''
-      }
+      },
+      updateTarget: '',
+      showUpdateForm: false
     }
   },
   created () {
@@ -245,6 +262,17 @@ export default {
         response, data
       }
       this.$emit('display-alert', fetchResult)
+    },
+    showUpdatePage (recipe) {
+      this.updateTarget = recipe
+      this.showUpdateForm = true
+    },
+    passToTop (fetchResult) {
+      this.$emit('display-alert', fetchResult)
+    },
+    showPanel (boo) {
+      this.showUpdateForm = boo
+      setTimeout(() => this.fetchAll(), 1000)
     }
   }
 }
