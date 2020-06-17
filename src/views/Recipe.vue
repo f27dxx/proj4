@@ -148,8 +148,8 @@
             <p class="mb-0">
                 {{ comment.content }}
               <span id="trashCan">
-                <b-icon-trash v-if="comment.username == rootUsername" @click="updateDeleteCommentTarget(comment.c_id, index, comment.content)" v-b-modal.commentModal />
-                <span v-if="comment.username != rootUsername" class="mb-0"><i>{{ comment.username }}</i></span>
+                <b-icon-trash v-if="rootPrivilege == 1 || comment.username == rootUsername" @click="updateDeleteCommentTarget(comment.c_id, index, comment.content)" v-b-modal.commentModal />
+                <span v-if="comment.username != rootUsername && rootPrivilege != 1" class="mb-0"><i>{{ comment.username }}</i></span>
               </span>
             </p>
             </b-list-group-item>

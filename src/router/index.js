@@ -53,8 +53,7 @@ const routes = [
         const response = await fetch('https://api.ipify.org?format=json')
         const data = await response.json()
         clientIp = data.ip
-        console.log(clientIp)
-        if (process.env.VUE_APP_IP === clientIp) {
+        if (process.env.VUE_APP_IP.includes(clientIp)) {
           next()
         } else {
           next('/404')

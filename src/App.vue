@@ -86,7 +86,7 @@ import LoginModal from '@/components/LoginModal'
 export default {
   data () {
     return {
-      clientIp: '',
+      clientIp: 'not valid',
       showOverlay: false,
       dismissSecs: 3,
       dismissCountDown: 0,

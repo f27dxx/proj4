@@ -55,7 +55,7 @@
         <div class="px-3 py-2">
           <nav class="mb-3">
             <b-nav vertical :class="darkMode ? 'local-dark' : ''">
-              <b-nav-item v-if="rootIsLoggedIn && superAdmin === clientIp" to="/admin" @click="hide">Admin</b-nav-item>
+              <b-nav-item v-if="rootIsLoggedIn && superAdmin" to="/admin" @click="hide">Admin</b-nav-item>
               <b-nav-item v-if="rootIsLoggedIn" to="/create" @click="hide">Create Recipe</b-nav-item>
               <b-nav-item to="/search/vodka" @click="hide">Vodka</b-nav-item>
               <b-nav-item to="/search/tequila" @click="hide">Tequila</b-nav-item>
@@ -89,7 +89,7 @@ export default {
     return {
       searchItem: '',
       visible: false,
-      superAdmin: process.env.VUE_APP_IP
+      superAdmin: false
     }
   },
   props: {
@@ -97,6 +97,17 @@ export default {
     rootIsLoggedIn: Boolean,
     clientIp: String,
     darkMode: Boolean
+  },
+  mounted () {
+    this.verifySuperadmin()
+  },
+  watch: {
+    clientIp: {
+      immediate: true,
+      handler () {
+        this.verifySuperadmin()
+      }
+    }
   },
   methods: {
     sendDarkMode (boo) {
@@ -138,6 +149,15 @@ export default {
       console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
       this.$emit('overlay-control', false)
+    },
+    verifySuperadmin () {
+      // console.log(process.env.VUE_APP_IP)
+      if (process.env.VUE_APP_IP.includes(this.clientIp)) {
+        this.superAdmin = true
+      }
+      if (process.env.VUE_APP_IP.includes(this.clientIp) === false) {
+        this.superAdmin = false
+      }
     }
   }
 }

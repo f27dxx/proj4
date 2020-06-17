@@ -262,6 +262,7 @@ export default {
         response, data
       }
       this.$emit('display-alert', fetchResult)
+      setTimeout(() => this.fetchAll(), 1000)
     },
     showUpdatePage (recipe) {
       this.updateTarget = recipe
