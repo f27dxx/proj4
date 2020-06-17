@@ -9,7 +9,7 @@
         </b-col>
         <b-col cols="6">
           <b-navbar-brand to="/" class="ml-5 mr-0">
-            <h4 class="my-0" :class="darkMode ? 'dark' : ''">
+            <h4 id="cocktailer" class="my-0" :class="darkMode ? 'dark' : ''">
               Cocktailer
             </h4>
           </b-navbar-brand>
@@ -171,5 +171,13 @@ export default {
 }
 #moon {
   color: yellow;
+}
+
+#cocktailer {
+  width: 138px;
+  position: absolute;
+  margin-left: -69px;
+  left: 50%;
+  top: 5px;
 }
 </style>

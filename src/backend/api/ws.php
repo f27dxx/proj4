@@ -112,20 +112,29 @@
       break;
       case 'register':
         $data = json_decode(file_get_contents("php://input"));
-
-        $recipe->username = $data->username;
-        $recipe->password = $data->password;
-        if(isset($data->privilege)){
-          $recipe->privilege = $data->privilege;
-        } else {
+        if (strlen($data->username) > 4 && 
+            strlen($data->username) < 16 &&
+            strlen($data->password) > 7 && 
+            strlen($data->password) < 81){
+          $recipe->username = $data->username;
+          $recipe->password = $data->password;
           $recipe->privilege = 2;
+        } else {
+          http_response_code(401);
+          echo json_encode(
+            array('message' => 'unauthorized')
+          );
+          $recipe->logging('register', 'fail');
+          return ;
         }
 
         if($recipe->createUser()){
+          $recipe->logging('register', 'success');
           echo json_encode(
             array('message' => 'Welcome!')
           );
         } else {
+          $recipe->logging('register', 'fail');
           http_response_code(409);
           echo json_encode(
             array('message' => 'Username already exist.')
@@ -134,9 +143,21 @@
       break;
       case 'login':
         $data = json_decode(file_get_contents("php://input"));
-        $recipe->username = $data->username;
-        $recipe->password = $data->password;
+        if (strlen($data->username) > 4 && 
+            strlen($data->username) < 16 &&
+            strlen($data->password) > 7 && 
+            strlen($data->password) < 81){
+          $recipe->username = $data->username;
+          $recipe->password = $data->password;
+        } else {
+          http_response_code(401);
+          echo json_encode(
+            array('message' => 'unauthorized')
+          );
+          return;
+        }
         if($recipe->validateUser()){
+          $recipe->logging('login', 'success');
           echo json_encode(
             array('message' => 'Welcome back!',
                   'privilege' => $_SESSION['privilege'],
@@ -144,6 +165,7 @@
                   'username' => $_SESSION['username'])
           );
         } else {
+          $recipe->logging('login', 'fail');
           http_response_code(401);
           echo json_encode(
             array('message' => 'Wrong Combination.')
@@ -155,6 +177,7 @@
         unset($_SESSION['user_id']);
         unset($_SESSION['privilege']);
         unset($_SESSION['logged_in']);
+        $recipe->logging('logout', 'success');
         echo json_encode(
           array('message' => 'Logged Out')
         );
@@ -167,6 +190,13 @@
       case 'crecipe':
         if(isset($_SESSION['logged_in'])){
           $data = json_decode(file_get_contents("php://input"));
+          $allGood = true;
+          if(strlen($data->name) < 2 || strlen($data->name) > 30){
+            $allGood = false;
+          }
+          if(strlen($data->description) < 15 || strlen($data->description) > 600){
+            $allGood = false;
+          }
           $recipe->name = $data->name;
           $recipe->description = $data->description;
           $recipe->imgUrl = $data->imgUrl;
@@ -174,6 +204,12 @@
           
           for($i = 0; $i < 15; $i++){
             if (!empty($data->quantity[$i]) && !empty($data->measurement[$i]) && !empty($data->item[$i])) {
+              if (!ctype_digit($data->quantity[$i]) ||
+                  !ctype_digit($data->measurement[$i]) ||
+                  strlen($data->item[$i]) < 2 ||
+                  strlen($data->item[$i]) > 50) {
+                $allGood = false;
+              }
               $recipe->quantity[$i] = $data->quantity[$i];
               $recipe->measurement[$i] = $data->measurement[$i];
               $recipe->item[$i] = $data->item[$i];
@@ -182,23 +218,37 @@
 
           for($i = 0; $i < 5; $i++){
             if(!empty($data->step[$i])){
+              if(strlen($data->step[$i]) < 15 || strlen($data->step[$i]) > 200) {
+                $allGood = false;
+              }
               $recipe->step[$i] = $data->step[$i];
             }
           }
+          if(!$allGood) {
+            $recipe->logging('create recipe', 'fail');
+            http_response_code(501);
+            echo json_encode(
+              array('message' => 'not authorized')
+            );
+            return;
+          }
 
           if($recipe->createRecipe()){
+            $recipe->logging('create recipe', 'success');
             echo json_encode(
               array('message' => 'Created!',
                     'recipe_id' => $_SESSION['myLastRecipe'])
             );
             unset($_SESSION['myLastRecipe']);
           } else {
+            $recipe->logging('create recipe', 'fail');
             http_response_code(501);
             echo json_encode(
               array('message' => 'Recipe not added')
             );
           }
         } else {
+          $recipe->logging('create recipe', 'fail');
           //if user is not logged in
           http_response_code(403);
           echo json_encode(
@@ -208,6 +258,14 @@
       break;
       case 'drecipe':
         if(isset($_GET['id']) && isset($_SESSION['logged_in'])){
+          if(!ctype_digit($_GET['id'])){
+            http_response_code(501);
+            $recipe->logging('delete recipe', 'fail');
+            echo json_encode(
+              array('message' => 'not authorized')
+            );
+            return;
+          }
           if(
             //if the logged in user own the recipe
             $recipe->checkRecipeOwnership($_GET['id']) == $_SESSION['user_id'] ||
@@ -219,11 +277,13 @@
             $recipe->recipe_id = $_GET['id'];
             //delete recipe
             if($recipe->deleteRecipe()){
+              $recipe->logging('delete recipe', 'success');
               echo json_encode(
                 array('message' => 'Deleted.')
               );
             } else {
               //if somehow the user own the recipe cannot delete it
+              $recipe->logging('delete recipe', 'fail');
               echo json_encode(
                 array('message' => 'Recipe not delete')
               );
@@ -231,6 +291,7 @@
             
           } else {
             //if logged in but user does not own the recipe
+            $recipe->logging('delete recipe', 'fail');
             http_response_code(403);
             echo json_encode(
               array('message' => 'Access denied')
@@ -239,6 +300,7 @@
 
         } else {
           //if get access to delete recipe but not logged in
+          $recipe->logging('delete recipe', 'fail');
           http_response_code(401);
           echo json_encode(
             array('message' => 'Not authorized.')
@@ -247,12 +309,19 @@
       break;
       case 'urecipe':
         if(isset($_GET['id']) && isset($_SESSION['logged_in'])){
-          if(
-            //if the logged in user own the recipe
-            $recipe->checkRecipeOwnership($_GET['id']) == $_SESSION['user_id'] ||
-            // or the logged in user have admin privilege
-            $_SESSION['privilege'] == 1){
+          if(ctype_digit($_GET['id']) &&
+          //if the logged in user own the recipe
+          $recipe->checkRecipeOwnership($_GET['id']) == $_SESSION['user_id'] ||
+          // or the logged in user have admin privilege
+          $_SESSION['privilege'] == 1){
             $data = json_decode(file_get_contents("php://input"));
+            $allGood = true;
+            if(strlen($data->name) < 2 || strlen($data->name) > 30){
+              $allGood = false;
+            }
+            if(strlen($data->description) < 15 || strlen($data->description) > 600){
+              $allGood = false;
+            }
             $recipe->name = $data->name;
             $recipe->description = $data->description;
             $recipe->imgUrl = $data->imgUrl;  
@@ -263,6 +332,12 @@
                 !empty($data->measurement[$i]) &&
                 !empty($data->item[$i]) &&
                 !empty($data->i_id[$i])){
+                if (!ctype_digit($data->quantity[$i]) ||
+                    !ctype_digit($data->measurement[$i]) ||
+                    strlen($data->item[$i]) < 2 ||
+                    strlen($data->item[$i]) > 50) {
+                    $allGood = false;
+                }
                 $recipe->quantity[$i] = $data->quantity[$i];
                 $recipe->measurement[$i] = $data->measurement[$i];
                 $recipe->item[$i] = $data->item[$i];
@@ -272,16 +347,29 @@
   
             for($i = 0; $i < 5; $i++){
               if(!empty($data->step[$i]) && !empty($data->met_id[$i])){
+                if(strlen($data->step[$i]) < 15 || strlen($data->step[$i]) > 200) {
+                  $allGood = false;
+                }
                 $recipe->step[$i] = $data->step[$i];
                 $recipe->met_id[$i] = $data->met_id[$i];
               }
             }
+            if(!$allGood) {
+              $recipe->logging('update recipe', 'fail');
+              http_response_code(501);
+              echo json_encode(
+                array('message' => 'not authorized')
+              );
+              die();
+            }
 
             if($recipe->updateRecipe()){
+              $recipe->logging('update recipe', 'success');
               echo json_encode(
                 array('message' => 'Updated!')
               );
             } else {
+              $recipe->logging('update recipe', 'fail');
               echo json_encode(
                 array('message' => 'Recipe NOT updated')
               );
@@ -289,6 +377,7 @@
             
           } else {
             //if logged in but user does not own the recipe
+            $recipe->logging('update recipe', 'fail');
             http_response_code(403);
             echo json_encode(
               array('message' => 'Access denied')
@@ -297,6 +386,7 @@
 
         } else {
           //if get access to delete recipe but not logged in
+          $recipe->logging('update recipe', 'fail');
           http_response_code(401);
           echo json_encode(
             array('message' => 'Not authorized.')
@@ -306,17 +396,27 @@
       case 'ccomment':
         if(isset($_GET['id']) && isset($_SESSION['logged_in'])){
           $data = json_decode(file_get_contents("php://input"));
+          if(!ctype_digit($_GET['id']) || strlen($data->content) < 5 || strlen($data->content) > 30){
+            $recipe->logging('create comment', 'fail');
+            http_response_code(501);
+            echo json_encode(
+              array('message' => 'not authorized')
+            );
+            return;
+          }
           $recipe->recipe_id = $_GET['id'];
           $recipe->content = $data->content;
           $recipe->user_id = $_SESSION['user_id'];
         
           if($recipe->createComment()){
+            $recipe->logging('create comment', 'success');
             echo json_encode(
               array('message' => 'Comment Added',
                     'c_id' => $_SESSION['myLastInsertComment'])
             );
             unset($_SESSION['myLastInsertComment']);
           } else {
+            $recipe->logging('create comment', 'fail');
             http_response_code(403);
             echo json_encode(
               array('message' => 'Comment not added')
@@ -325,6 +425,7 @@
 
         } else {
           //if get access to delete recipe but not logged in
+          $recipe->logging('create comment', 'fail');
           http_response_code(401);
           echo json_encode(
             array('message' => 'Not authorized.')
@@ -334,7 +435,7 @@
       case 'dcomment':
         if(isset($_GET['id']) && isset($_SESSION['logged_in'])){
           $data = json_decode(file_get_contents("php://input"));
-          if(
+          if(ctype_digit($_GET['id']) && ctype_digit($data->c_id) &&
             //if the logged in user own the comment
             $recipe->checkCommentOwnership($data->c_id) == $_SESSION['user_id'] ||
             // or the logged in user have admin privilege
@@ -343,16 +444,19 @@
             $recipe->c_id = $data->c_id;
           
             if($recipe->deleteComment()){
+              $recipe->logging('delete comment', 'success');
               echo json_encode(
                 array('message' => 'Deleted.')
               );
             } else {
+              $recipe->logging('delete comment', 'fail');
               echo json_encode(
                 array('message' => 'Comment not Delete')
               );
             }
             
           } else {
+            $recipe->logging('delete comment', 'fail');
             //if logged in but user does not own the recipe
             http_response_code(403);
             echo json_encode(
@@ -468,16 +572,19 @@
       case 'admindelete':
         if(isset($_GET['id']) && $_SESSION['privilege'] == 1){
           if($recipe->deleteAllbyUserId($_GET['id'])){
+            $recipe->logging('admin delete', 'success');
             echo json_encode(
               array('message' => 'delete ALL!')
             );
           } else {
+            $recipe->logging('admin delete', 'fail');
             echo json_encode(
               array('message' => 'not delete ALL')
             );
           }
       } else {
         //if get access to delete recipe but not logged in
+        $recipe->logging('admin delete', 'fail');
         http_response_code(401);
         echo json_encode(
           array('message' => 'Not authorized.')
