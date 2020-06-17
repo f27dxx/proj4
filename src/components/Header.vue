@@ -146,7 +146,6 @@ export default {
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
       this.$emit('overlay-control', false)
     },

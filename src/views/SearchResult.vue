@@ -54,27 +54,21 @@ export default {
         this.foundPost = false
         this.$emit('display-alert', fetchResult)
       }
-      console.log(response)
-      console.log(data.data)
       this.$emit('overlay-control', false)
     }
   },
   watch: {
     searchItem: {
       handler () {
-        console.log(this.searchItem)
-        console.log(this.$route.params.item)
         this.searchThis(this.searchItem)
       }
     }
   },
   created () {
     this.searchItem = this.$route.params.item
-    console.log(this.searchItem + 'create search')
   },
   updated () {
     this.searchItem = this.$route.params.item
-    console.log(this.searchItem + 'update search')
   }
 }
 </script>

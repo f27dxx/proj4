@@ -1158,10 +1158,6 @@ export default {
         this.cocktailStep = data.data[0].step_arr
         this.cocktailIngreLength = data.data[0].ingre_arr.length
         this.cocktailStepLength = data.data[0].step_arr.length
-        console.log(response)
-        console.log(data)
-        console.log(data.data)
-        console.log(this.cocktailDetails.name + 'is on update')
         this.assignValue()
         this.foundPost = true
       }
@@ -1169,7 +1165,6 @@ export default {
         const fetchResult = {
           response, data
         }
-        console.log(fetchResult)
         this.$emit('display-alert', fetchResult)
       }
       this.$emit('overlay-control', false)
@@ -1195,7 +1190,6 @@ export default {
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
 
       if (response.ok) {

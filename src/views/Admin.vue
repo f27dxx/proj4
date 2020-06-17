@@ -246,9 +246,7 @@ export default {
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
-      console.log(item.recipe_id)
     },
     async deleteAllbyUserId (userId) {
       const response = await fetch('/api/ws.php?method=admindelete&id=' + userId, {

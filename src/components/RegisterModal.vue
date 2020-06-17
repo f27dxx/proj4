@@ -124,8 +124,6 @@ export default {
         })
         this.$emit('control-modal', 'login')
       }
-      console.log(response)
-      console.log(data)
       const fetchResult = {
         response, data
       }

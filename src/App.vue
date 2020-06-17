@@ -161,14 +161,12 @@ export default {
       this.rootPrivilege = value.rootPrivilege
       this.rootUsername = value.rootUsername
       this.rootIsLoggedIn = value.rootIsLoggedIn
-      console.log(value)
     },
     logoutUser (value) {
       this.rootUserId = value.rootUserId
       this.rootPrivilege = value.rootPrivilege
       this.rootUsername = value.rootUsername
       this.rootIsLoggedIn = value.rootIsLoggedIn
-      console.log(value)
     },
     setIsAdult (boo) {
       this.$bvModal.hide('eighteen')
@@ -203,12 +201,10 @@ export default {
       if (boo) {
         localStorage.setItem('theme', 'dark')
         this.darkMode = true
-        console.log('dark selected')
       }
       if (!boo) {
         localStorage.removeItem('theme')
         this.darkMode = false
-        console.log('no dark')
       }
     }
   }

@@ -48,7 +48,7 @@ export default {
   },
   methods: {
     showMe () {
-      console.log('show')
+      // console.log('show')
     },
     likeThis () {
       this.liked = !this.liked

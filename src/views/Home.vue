@@ -36,7 +36,6 @@ export default {
       })
       const data = await response.json()
       this.searchResultArray = [data.data[0], data.data[1], data.data[2]]
-      console.log(this.searchResultArray)
     }
   }
 }

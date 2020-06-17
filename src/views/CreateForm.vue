@@ -1146,12 +1146,10 @@ export default {
         if (!success) {
           return
         }
-        alert('Form has been submitted!')
         this.createRecipe()
       })
     },
     async createRecipe () {
-      console.log(this.form)
       const response = await fetch('/api/ws.php?method=crecipe', {
         method: 'POST',
         cache: 'no-cache',
@@ -1159,13 +1157,10 @@ export default {
         body: JSON.stringify(this.form)
       })
       const data = await response.json()
-      console.log(response)
-      console.log(data)
 
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
 
       // reset value

@@ -209,10 +209,6 @@ export default {
       this.cocktailIngre = data.data[0].ingre_arr
       this.cocktailStep = data.data[0].step_arr
       this.cocktailComment = data.data[0].comm_arr
-      console.log(response)
-      console.log(data)
-      console.log(data.data)
-      console.log(this.cocktailDetails.name + 'is here')
 
       if (!response.ok) {
         const fetchResult = {
@@ -231,11 +227,9 @@ export default {
         body: JSON.stringify(this.form)
       })
       const data = await response.json()
-      console.log(data)
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
       if (response.ok) {
         const addCommentItem = {
@@ -266,13 +260,10 @@ export default {
       this.deleteCommentIndex = commentIndex
       this.deleteCommentTarget = commentId
       this.deleteCommentContent = commentContent
-      console.log(this.deleteCommentIndex + 'index')
-      console.log(this.deleteCommentTarget + 'c_id')
     },
     async deleteComment () {
       this.$emit('overlay-control', true)
       this.$bvModal.hide('commentModal')
-      console.log('/api/ws.php?method=dcomment&id=' + this.recipeId)
       const response = await fetch('/api/ws.php?method=dcomment&id=' + this.recipeId, {
         method: 'POST',
         cache: 'no-cache',
@@ -280,11 +271,9 @@ export default {
         body: JSON.stringify({ c_id: this.deleteCommentTarget })
       })
       const data = await response.json()
-      console.log(response)
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
       if (response.ok) {
         this.cocktailComment.splice(this.deleteCommentIndex, 1)
@@ -303,7 +292,6 @@ export default {
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
 
       if (response.ok) {

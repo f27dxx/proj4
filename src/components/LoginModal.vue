@@ -107,8 +107,6 @@ export default {
         body: JSON.stringify(this.form)
       })
       const data = await response.json()
-      console.log(response)
-      console.log(data)
       if (response.ok) {
         const loginDetails = {
           rootUserId: data.user_id,
@@ -137,7 +135,6 @@ export default {
       const fetchResult = {
         response, data
       }
-      console.log(fetchResult)
       this.$emit('display-alert', fetchResult)
       this.$emit('overlay-control', false)
     },
